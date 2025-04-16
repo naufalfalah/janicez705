@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renovation Budget Calculator</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8b5cf6; /* End color of gradient */
+            --primary-light: #1e1b4b; /* Muted purple-ish dark background */
+            --primary-dark: #4f46e5; /* Start color of gradient */
+            --secondary: #a78bfa; /* Accent from same purple family */
+            --gradient: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            --text: #f4f4f5; /* Light neutral text */
+            --text-light: #a1a1aa; /* Dim text */
+            --background: #0f172a; /* Deep navy for dark theme */
+            --card: #1e293b; /* Dark card background */
+            --border: #334155; /* Subtle dark border */
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft dark shadow */
+            --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
+            --radius: 12px;
+            --heading: linear-gradient(90deg, #fff 0%, var(--text) 80%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .calculator {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: var(--gradient);
+            color: white;
+            padding: 30px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: white;
+            color: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin: 12px 0 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            width: 16.6%;
+            transition: width 0.3s ease;
+        }
+
+        .steps-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .step-item {
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .step-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .step-item.active {
+            background: white;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .step-item.completed {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .step-number {
+            position: absolute;
+            right: 16px;
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .step-item.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+
+        .sidebar-footer {
+            margin-top: 40px;
+            font-size: 12px;
+            opacity: 0.8;
+            text-align: center;
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Form sections */
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--heading);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        /* Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .option-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+/*            cursor: pointer;*/
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            box-shadow: var(--shadow);
+        }
+
+        .option-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary);
+        }
+
+        /*.option-card.selected {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+*/
+        .card-icon {
+            color: var(--primary);
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .card-description {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .card-check {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+
+        /*.option-card.selected .card-check {
+            opacity: 1;
+            transform: scale(1);
+        }*/
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 15px;
+            background: var(--card);
+            color: var(--text);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        /* Checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-grid-one {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 12px;
+        }
+
+        .checkbox-wrapper {
+            position: relative;
+            margin-bottom: 4px;
+        }
+
+        .checkbox-input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: 10px;
+        }
+
+        .checkbox-input:checked + .checkbox-label {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .checkbox-custom {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox-input:checked + .checkbox-label .checkbox-custom {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-custom::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 3px;
+            width: 8px;
+            height: 4px;
+            border-left: 2px solid white;
+            border-bottom: 2px solid white;
+            transform: rotate(-45deg) scale(0);
+            transition: all 0.2s ease;
+        }
+
+        .checkbox-input:checked + .checkbox-label .checkbox-custom::after {
+            transform: rotate(-45deg) scale(1);
+        }
+
+        /* Radio options */
+        .work-category {
+/*            background: var(--card);*/
+            border-radius: var(--radius);
+/*            padding: 20px;*/
+            margin-bottom: 24px;
+/*            box-shadow: var(--shadow);*/
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .category-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-title {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .radio-group-one {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .radio-group-two {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .radio-wrapper {
+            position: relative;
+        }
+
+        .radio-input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-label {
+            display: block;
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .radio-input:checked + .radio-label {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .radio-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .radio-price {
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 10px;
+            transition: all 0.2s ease;
+        }
+
+        .clear-btn:hover {
+            color: var(--text);
+        }
+
+        /* Two-column form */
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Phone input */
+        .phone-input {
+            display: flex;
+            gap: 12px;
+        }
+
+        .phone-code {
+            width: 110px;
+            flex-shrink: 0;
+        }
+
+        /* Buttons */
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-prev {
+            background-color: #e2e8f0;
+            color: var(--card);
+        }
+
+        .btn-prev:hover {
+            background-color: #d1d8e0;
+        }
+
+        .btn-next {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-next:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Results */
+        .result-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 30px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+
+        .result-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 24px 0;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .result-amount::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--gradient);
+            border-radius: 2px;
+        }
+
+        .alert {
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            margin: 24px 0;
+            border-radius: 6px;
+            text-align: left;
+        }
+
+        .result-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-btn.primary {
+            background: var(--gradient);
+            color: white;
+            border: none;
+        }
+
+        .action-btn.secondary {
+            background: #e2e8f0;
+            color: var(--card);
+            border: none;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            /*.sidebar {
+                display: none;
+            }*/
+
+            .main-content {
+                margin-left: 300px;
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cards-grid,
+            .checkbox-grid,
+            .radio-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (min-width: 320px) and (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+                background: var(--gradient);
+                color: white;
+                padding: 30px;
+                position: unset; 
+                height: auto; 
+                overflow-y: unset;
+                border-radius: 0 0 20px 20px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+            .calculator {
+                flex-direction: column;
+                display: flex;
+            }
+            .main-content {
+                margin-left: 0px;
+                padding: 20px;
+            }
+            .option-card,
+            .alert,
+            .result-card{
+                padding: 10px;
+            }
+  
+  
+        }
+/*        NEW CSS ADD     */
+
+        .Text-Lines{
+            background: var(--primary-light);
+            border-radius: 6px;
+            padding: 0px 5px 3px 5px;
+            color: var(--text);
+        }
+        .last-contact{
+            margin-bottom: 20px;
+        }
+        .disclaimer-main-wrapper{
+            display: flex;
+            gap: 10px;
+        }
+        .disclaimer-icon {
+            color: var(--primary);
+            font-size: 24px;
+            margin-top: -5px;
+        }
+/*        SCROLL BAR */
+
+        /*.sidebar::-webkit-scrollbar {
+            width: .5em;
+        }
+         
+        .sidebar::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+        }
+         
+        .sidebar::-webkit-scrollbar-thumb {
+            border-radius: 2px;
+            background: var(--primary-light);
+        }
+*/
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="logo-text">Renovation Budget</div>
+            </div>
+
+            <div class="progress-container">
+                <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                    <span>Completion</span>
+                    <span id="progress-percentage">16%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
+            <ul class="steps-list">
+                <li class="step-item active" data-step="1">
+                    <div class="step-icon"><i class="fas fa-building"></i></div>
+                    <div class="step-text">EC Assessment</div>
+                    <div class="step-number">1</div>
+                </li>
+                <li class="step-item" data-step="2">
+                    <div class="step-icon"><i class="fas fa-door-open"></i></div>
+                    <div class="step-text">Household Plan</div>
+                    <div class="step-number">2</div>
+                </li>
+                <li class="step-item" data-step="3">
+                    <div class="step-icon"><i class="fa-solid fa-user"></i></div>
+                    <div class="step-text">Age Criteria</div>
+                    <div class="step-number">3</div>
+                </li>
+                <li class="step-item" data-step="4">
+                    <div class="step-icon"><i class="fa-solid fa-handshake"></i></div>
+                    <div class="step-text">Property Ownership</div>
+                    <div class="step-number">4</div>
+                </li>
+                <li class="step-item" data-step="5">
+                    <div class="step-icon"><i class="fa-solid fa-headset"></i></div>
+                    <div class="step-text">Contact Info</div>
+                    <div class="step-number">5</div>
+                </li>
+                <li class="step-item" data-step="6" >
+                    <div class="step-icon"><i class="fas fa-calculator"></i></div>
+                    <div class="step-text">Final Estimate</div>
+                    <div class="step-number">6</div>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                Helping you plan your perfect renovation
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="container">
+                <!-- Step 1: Property Details -->
+                <section class="form-section active" id="step-1">
+                    <div class="section-header">
+                        <h1 class="section-title">EC Eligibility Assessment</h1>
+                        <p class="section-subtitle">Ready to explore your options for purchasing an EC? You're just a few questions away from discovering whether you qualify and if you're eligible for a <span class="Text-Lines">$30,000 grant</span> to offset your purchase cost.</p>
+                    </div>
+
+                    <div class="form-group">
+                        <!-- <label class="form-label">Property Status</label> -->
+                        <div class="cards-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            <div class="option-card" onclick="selectCard(this, 'property-status')">
+                                <div class="card-icon"><i class="fa-solid fa-face-smile"></i></div>
+                                <h3 class="card-title">Check eligibility for $30,000 grants</h3>
+                                <!-- <p class="card-description">Brand new property</p> -->
+                                <div class="card-check"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="option-card" onclick="selectCard(this, 'property-status')">
+                                <div class="card-icon"><i class="fa-solid fa-house"></i></div>
+                                <h3 class="card-title">Access to exclusive EC properties</h3>
+                                <!-- <p class="card-description">Previously owned property</p> -->
+                                <div class="card-check"><i class="fas fa-check"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="cards-grid" style="grid-template-columns: repeat(2, 1fr);">
+                            <div class="option-card" onclick="selectCard(this, 'property-status')">
+                                <div class="card-icon"><i class="fa-solid fa-file"></i></div>
+                                <h3 class="card-title">Download comprehensive EC listings</h3>
+                                <!-- <p class="card-description">Brand new property</p> -->
+                                <div class="card-check"><i class="fas fa-check"></i></div>
+                            </div>
+                            <div class="option-card" onclick="selectCard(this, 'property-status')">
+                                <div class="card-icon"><i class="fa-solid fa-bolt"></i></div>
+                                <h3 class="card-title">Priority access to new launches</h3>
+                                <!-- <p class="card-description">Previously owned property</p> -->
+                                <div class="card-check"><i class="fas fa-check"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert disclaimer-main-wrapper" style="background-color: var(--card);">
+                        <div class="disclaimer-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                        <div class="disclaimer-inner-wrapper">
+                            <label class="form-label">Important Note:</label>
+                            <p>This assessment is a mandatory step required by all developers to determine your eligibility, but rest assured, you are not obligated to make a purchase. Your responses will help us tailor the best options for your needs.</p>
+                        </div>
+                    </div>
+
+                    <p class="section-subtitle">Complete the questionnaire now for immediate results and exclusive access to the latest <span class="Text-Lines">2025 new launch units</span> from our partnering developers.</p>
+
+                    <div class="buttons">
+                        <div></div> <!-- Empty div for spacing -->
+                        <button class="btn btn-next" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+
+                </section>
+
+                <!-- Step 2: Household Scheme -->
+                <section class="form-section" id="step-2">
+                    <div class="section-header">
+                        <h1 class="section-title">Household Scheme</h1>
+                        <p class="section-subtitle">Who will be included in your EC purchase?</p>
+                    </div>
+
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-one">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="Yourself-1" name="Yourself" class="radio-input">
+                                    <label for="Yourself-1" class="radio-label">
+                                        <span>Yourself + fiancé/fiancée</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="Yourself-2" name="Yourself" class="radio-input">
+                                    <label for="Yourself-2" class="radio-label">
+                                        <span>Yourself + spouse</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="Yourself-3" name="Yourself" class="radio-input">
+                                    <label for="Yourself-3" class="radio-label">
+                                        <span>Yourself + parents</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="Yourself-4" name="Yourself" class="radio-input">
+                                    <label for="Yourself-4" class="radio-label">
+                                        <span>Yourself + child under legal custody</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="Yourself-5" name="Yourself" class="radio-input">
+                                    <label for="Yourself-5" class="radio-label">
+                                        <span>Yourself + up to 3 other singles (all 35 and above)</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="Yourself-6" name="Yourself" class="radio-input">
+                                    <label for="Yourself-6" class="radio-label">
+                                        <span>Yourself + orphaned sibling(s)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h1 class="section-title">Citizenship</h1>
+                        <p class="section-subtitle">Does your household include a Singapore Citizen?</p>
+                    </div>
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-two">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="citizenship-1" name="citizenship" class="radio-input">
+                                    <label for="citizenship-1" class="radio-label">
+                                        <span>Yes, at least one Singapore Citizen and one Permanent Resident</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="citizenship-2" name="citizenship" class="radio-input">
+                                    <label for="citizenship-2" class="radio-label">
+                                        <span>Yes, at least one Singapore Citizen and all others are either Permanent Residents or Citizens</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="citizenship-3" name="citizenship" class="radio-input">
+                                    <label for="citizenship-3" class="radio-label">
+                                        <span>No, not Singapore Citizens or Permanent Residents</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <button class="btn btn-prev" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-next" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+
+
+                <!-- Step 3: Age Requirement -->
+                <section class="form-section" id="step-3">
+                    <div class="section-header">
+                        <h1 class="section-title">Age Requirement</h1>
+                        <p class="section-subtitle">Are you and/or your co-applicants of eligible age?</p>
+                    </div>
+
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-two">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="age-1" name="age" class="radio-input">
+                                    <label for="age-1" class="radio-label">
+                                        <span>Yes, I am at least 21 years old</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="age-2" name="age" class="radio-input">
+                                    <label for="age-2" class="radio-label">
+                                        <span>Yes, I am at least 35 years old (applying under the Joint Singles Scheme)</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="age-3" name="age" class="radio-input">
+                                    <label for="age-3" class="radio-label">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h1 class="section-title">Monthly Household Income</h1>
+                        <p class="section-subtitle">Is your combined household income below $16,000?</p>
+                    </div>
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-one">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="monthly-household-1" name="monthly-household" class="radio-input">
+                                    <label for="monthly-household-1" class="radio-label">
+                                        <span>Yes</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="monthly-household-2" name="monthly-household" class="radio-input">
+                                    <label for="monthly-household-2" class="radio-label">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <button class="btn btn-prev" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-next" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Step 4: HDB Ownership Status -->
+                <section class="form-section" id="step-4">
+                    <div class="section-header">
+                        <h1 class="section-title">HDB Ownership Status</h1>
+                        <p class="section-subtitle">Do you or any co-applicants currently own an HDB flat that has completed the Minimum Occupation Period (MOP)?</p>
+                    </div>
+
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-two">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="ownership-status-1" name="ownership-status" class="radio-input">
+                                    <label for="ownership-status-1" class="radio-label">
+                                        <span>Yes, MOP completed</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="ownership-status-2" name="ownership-status" class="radio-input">
+                                    <label for="ownership-status-2" class="radio-label">
+                                        <span>No, do not own any HDB</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="ownership-status-3" name="ownership-status" class="radio-input">
+                                    <label for="ownership-status-3" class="radio-label">
+                                        <span>Yes, still within MOP</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h1 class="section-title">Private Property Ownership in the Last 30 Months</h1>
+                        <p class="section-subtitle">Have you or any co-applicants owned or disposed of any private property in the past 30 months?</p>
+                    </div>
+
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-one">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="property-ownership-1" name="property-ownership" class="radio-input">
+                                    <label for="property-ownership-1" class="radio-label">
+                                        <span>Yes</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="property-ownership-2" name="property-ownership" class="radio-input">
+                                    <label for="property-ownership-2" class="radio-label">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="buttons">
+                        <button class="btn btn-prev" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-next" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Step 5: Contact Information -->
+                <section class="form-section" id="step-5">
+                    <div class="section-header">
+                        <h1 class="section-title">First-Time Applicant</h1>
+                        <p class="section-subtitle">Is this your first application for an HDB/EC property?</p>
+                    </div>
+                    <div class="work-category">
+                        <div class="form-group">
+                            <div class="radio-group-one">
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="first-time-1" name="first-time" class="radio-input">
+                                    <label for="first-time-1" class="radio-label">
+                                        <span>Yes</span>
+                                    </label>
+                                </div>
+                                <div class="radio-wrapper">
+                                    <input type="radio" id="first-time-2" name="first-time" class="radio-input">
+                                    <label for="first-time-2" class="radio-label">
+                                        <span>No</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-header">
+                        <h1 class="section-title">Contact Information</h1>
+                        <p class="section-subtitle">Enter your details to receive a detailed renovation report</p>
+                    </div>
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-input" placeholder="Enter your full name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-input" placeholder="Enter your email address">
+                        </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Contact Number</label>
+                        <div class="phone-input">
+                            <select class="form-select phone-code">
+                                <option value="+65">+65 (SG)</option>
+                                <option value="+60">+60 (MY)</option>
+                                <option value="+1">+1 (US)</option>
+                                <option value="+44">+44 (UK)</option>
+                            </select>
+                            <input type="tel" class="form-input" placeholder="Enter your phone number">
+                        </div>
+                    </div>
+
+                    <!-- <div class="checkbox-wrapper last-contact">
+                        <input type="checkbox" id="designers" class="checkbox-input">
+                        <label for="designers" class="checkbox-label">
+                            <span class="checkbox-custom"></span>
+                            <span>Get a shortlist of Interior Designers</span>
+                        </label>
+                    </div>
+
+                    <div class="checkbox-wrapper last-contact">
+                        <input type="checkbox" id="terms" class="checkbox-input" checked>
+                        <label for="terms" class="checkbox-label">
+                            <span class="checkbox-custom"></span>
+                            <span>I accept the terms of service</span>
+                        </label>
+                    </div> -->
+
+                    
+
+                    <div class="buttons">
+                        <button class="btn btn-prev" onclick="prevStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-next" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Step 6: Results -->
+                <section class="form-section" id="step-6">
+                    <div class="section-header">
+                        <h1 class="section-title">Your Renovation Results</h1>
+                        <p class="section-subtitle">Here's your estimated renovation budget</p>
+                    </div>
+
+                    <div class="result-card">
+                        <div class="result-amount">$18,220 - $22,880</div>
+
+                        <p>This estimate covers all the renovation works you've selected.</p>
+
+                        <div class="alert">
+                            <p>A confirmation email with the PDF report has been sent to your@email.com</p>
+                        </div>
+
+                        <p>Our team will reach out with a shortlist of Interior Designers shortly.</p>
+
+                        <div class="result-actions">
+                            <button class="action-btn primary">
+                                <i class="fas fa-download"></i> Download Result
+                            </button>
+                            <button class="action-btn secondary" onclick="goToStep(1)">
+                                <i class="fas fa-redo"></i> Start Over
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables
+        let currentStep = 1;
+        const totalSteps = 6;
+        
+        // Elements
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercentage = document.getElementById('progress-percentage');
+        const stepItems = document.querySelectorAll('.step-item');
+        const formSections = document.querySelectorAll('.form-section');
+        
+        // Update progress
+        function updateProgress() {
+            const percent = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            progressFill.style.width = `${percent}%`;
+            progressPercentage.textContent = `${Math.round(percent)}%`;
+            
+            // Update step items
+            stepItems.forEach((item, index) => {
+                const step = index + 1;
+                item.classList.remove('active', 'completed');
+                
+                if (step === currentStep) {
+                    item.classList.add('active');
+                } else if (step < currentStep) {
+                    item.classList.add('completed');
+                }
+            });
+            
+            // Show current section
+            formSections.forEach((section, index) => {
+                section.classList.remove('active');
+                if (index + 1 === currentStep) {
+                    section.classList.add('active');
+                }
+            });
+        }
+        
+        // Next step
+        function nextStep() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateProgress();
+            }
+        }
+        
+        // Previous step
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateProgress();
+            }
+        }
+        
+        // Go to specific step
+        function goToStep(step) {
+            if (step >= 1 && step <= totalSteps) {
+                currentStep = step;
+                updateProgress();
+            }
+        }
+        
+        // Select card
+        function selectCard(card, group) {
+            // Deselect all cards in same group
+            const cards = document.querySelectorAll(`.option-card[onclick*="${group}"]`);
+            cards.forEach(c => c.classList.remove('selected'));
+            
+            // Select clicked card
+            card.classList.add('selected');
+        }
+        
+        // Clear radio buttons
+        function clearRadios(name) {
+            const radios = document.querySelectorAll(`input[name="${name}"]`);
+            radios.forEach(radio => {
+                radio.checked = false;
+            });
+        }
+        
+        // Initialize
+        updateProgress();
+    </script>
+</body>
+</html>
