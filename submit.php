@@ -9,34 +9,19 @@ loadEnv(__DIR__ . '/.env');
 header("Access-Control-Allow-Origin: *"); 
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS"); 
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Content-Type: application/json; charset=UTF-8");
 
-function safe_redirect($url) {
-    if (!headers_sent()) {
-        header("Location: " . getenv('BASE_URL') . $url);
-        exit;
-    } else {
-        die("Cannot redirect, headers already sent.");
-    }
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    safe_redirect("registration/");
-    exit;
-}
-
-// POST se data lena
-$household = $_POST['option'] ?? null;
+$household = $_POST['yourself'] ?? null;
 $citizenship = $_POST['citizenship'] ?? null;
 $requirement = $_POST['age'] ?? null;
-$household_income = $_POST['income'] ?? null;
-$ownership_status = $_POST['hdb'] ?? null;
-$private_property_ownership = $_POST['private-property'] ?? null;
-$first_time_applicant = $_POST['first-applications'] ?? null;
+$household_income = $_POST['monthly_household'] ?? null;
+$ownership_status = $_POST['ownership_status'] ?? null;
+$private_property_ownership = $_POST['property_ownership'] ?? null;
+$first_time_applicant = $_POST['first_time'] ?? null;
 $name = $_POST['name'] ?? null;
 $email = $_POST['email'] ?? null;
-$phone = $_POST['phone'] ?? null;
+$phone = $_POST['phone_number'] ?? null;
 
-// SQL Query
 $sql = "INSERT INTO users (household, citizenship, requirement, household_income, ownership_status, private_property_ownership, first_time_applicant, name, email, phone) 
         VALUES (:household, :citizenship, :requirement, :household_income, :ownership_status, :private_property_ownership, :first_time_applicant, :name, :email, :phone)";
 
@@ -62,30 +47,54 @@ $stmt->execute([':id' => $inserted_id]);
 $user = $stmt->fetch();
 
 if ($user) {
-    sendLeadToDiscord($user);
+    // sendLeadToDiscord($user);
 } else {
     die("Error: User not found after insert");
 }
+
+
+$response = [
+    'status' => 'success',
+    'message' => 'Form submitted successfully',
+    'data' => [],
+];
 
 switch (true) {
     case $citizenship === 'No, not Singapore Citizens or Permanent Residents' || 
         $requirement === 'No' || 
         $household_income === 'No' || 
         $private_property_ownership === 'Yes':
-        safe_redirect("disqualification/");
-        exit;
+        $response['data'] = [
+            'result' => 'disqualification',
+            'listing' => 'singmap-appeal-mop.php',
+        ];
+        break;
     case $ownership_status === 'Yes, MOP completed':
-        safe_redirect("congratulation/");
-        exit;
+        $response['data'] = [
+            'result' => 'congratulation',
+            'listing' => 'singmap-congratulation.php',
+        ];
+        break;
     case $ownership_status === 'Yes, still within MOP':
-        safe_redirect("mop/");
-        exit;
+        $response['data'] = [
+            'result' => 'mop',
+            'listing' => 'singmap-appeal-mop.php',
+        ];
+        break;
     case $ownership_status === 'No, do not own any HDB':
-        safe_redirect("appeal/");
-        exit;
+        $response['data'] = [
+            'result' => 'appeal',
+            'listing' => 'singmap-appeal-mop.php',
+        ];
+        break;
     default:
-        safe_redirect("");
-        exit;
+        $response['data'] = [
+            'result' => 'disqualification',
+            'listing' => 'singmap-appeal-mop.php',
+        ];
+        break;
 }
+echo json_encode($response);
+exit;
 
 ?>

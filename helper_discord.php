@@ -25,9 +25,6 @@ function sendData($data)
         ),
     ));
 
-    var_dump('check');
-    var_dump(json_encode($data));
-    die;
     $response = curl_exec($curl);
     curl_close($curl);
 
