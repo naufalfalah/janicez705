@@ -60,13 +60,6 @@ function goToStep(step) {
 }
 
 function startOver() {
-    const btnNext = document.querySelectorAll('.btn-next');
-    btnNext.forEach(button => {
-        if (button.dataset.step !== '1') {
-            button.setAttribute('disabled', 'disabled');
-        }
-    });
-
     const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="radio"]');
     inputs.forEach(input => {
         if (input.type === 'text' || input.type === 'email' || input.type === 'tel') {
@@ -123,39 +116,122 @@ $(document).ready(function() {
         radio.dispatchEvent(new Event('change'));
     });
 
+    // if next btn-next clicked
+    $('.btn-next').on('click', function() {
+        const step = $(this).data('step');
+        let isValid = true;
+        
+        if (step === 2) {
+            const isYourselfChecked = $('input[name="yourself"]:checked').length > 0;
+            if (!isYourselfChecked) {
+                $('#yourself-error').text('Please select an option.');
+                isValid = false;
+            }
+
+            const isCitizenshipChecked = $('input[name="citizenship"]:checked').length > 0;
+            if (!isCitizenshipChecked) {
+                $('#citizenship-error').text('Please select an option.');
+                isValid = false;
+            }
+        }
+
+        if (step === 3) {
+            const isAgeChecked = $('input[name="age"]:checked').length > 0;
+            if (!isAgeChecked) {
+                $('#age-error').text('Please select an option.');
+                isValid = false;
+            }
+
+            const isMonthlyHouseholdChecked = $('input[name="monthly_household"]:checked').length > 0;
+            if (!isMonthlyHouseholdChecked) {
+                $('#monthly-household-error').text('Please select an option.');
+                isValid = false;
+            }
+        }
+
+        if (step === 4) {
+            const isOwnershipStatusChecked = $('input[name="ownership_status"]:checked').length > 0;
+            if (!isOwnershipStatusChecked) {
+                $('#ownership-status-error').text('Please select an option.');
+                isValid = false;
+            }
+
+            const isPropertyOwnershipChecked = $('input[name="property_ownership"]:checked').length > 0;
+            if (!isPropertyOwnershipChecked) {
+                $('#property-ownership-error').text('Please select an option.');
+                isValid = false;
+            }
+        }
+
+        if (step === 5) {
+            const isFirstTimeChecked = $('input[name="first_time"]:checked').length > 0;
+            if (!isFirstTimeChecked) {
+                $('#first-time-error').text('Please select an option.');
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            return;
+        }
+
+        nextStep();
+    });
+
     // Step 2
-    $('input[name="yourself"], input[name="citizenship"]').change(function() {
+    $('input[name="yourself"]').change(function() {
         const isYourselfChecked = $('input[name="yourself"]:checked').length > 0;
+        
+        if (isYourselfChecked) {
+            $('#yourself-error').text('');
+            return;
+        }
+    });
+
+    $('input[name="citizenship"]').change(function() {
         const isCitizenshipChecked = $('input[name="citizenship"]:checked').length > 0;
         
-        if (isYourselfChecked && isCitizenshipChecked) {
-            $('.btn-next[data-step="2"]').removeAttr('disabled');
-        } else {
-            $('.btn-next[data-step="2"]').attr('disabled', 'disabled');
+        if (isCitizenshipChecked) {
+            $('#citizenship-error').text('');
+            return;
         }
     });
 
     // Step 3
-    $('input[name="age"], input[name="monthly_household"]').change(function() {
+    $('input[name="age"]').change(function() {
         const isAgeChecked = $('input[name="age"]:checked').length > 0;
+        
+        if (isAgeChecked) {
+            $('#age-error').text('');
+            return;
+        }
+    });
+
+    $('input[name="monthly_household"]').change(function() {
         const isMonthlyHouseholdChecked = $('input[name="monthly_household"]:checked').length > 0;
         
-        if (isAgeChecked && isMonthlyHouseholdChecked) {
-            $('.btn-next[data-step="3"]').removeAttr('disabled');
-        } else {
-            $('.btn-next[data-step="3"]').attr('disabled', 'disabled');
+        if (isMonthlyHouseholdChecked) {
+            $('#monthly-household-error').text('');
+            return;
         }
     });
 
     // Step 4
-    $('input[name="ownership_status"], input[name="property_ownership"]').change(function() {
+    $('input[name="ownership_status"]').change(function() {
         const isOwnershipStatusChecked = $('input[name="ownership_status"]:checked').length > 0;
+        
+        if (isOwnershipStatusChecked) {
+            $('#ownership-status-error').text('');
+            return;
+        }
+    });
+
+    $('input[name="property_ownership"]').change(function() {
         const isPropertyOwnershipChecked = $('input[name="property_ownership"]:checked').length > 0;
         
-        if (isOwnershipStatusChecked && isPropertyOwnershipChecked) {
-            $('.btn-next[data-step="4"]').removeAttr('disabled');
-        } else {
-            $('.btn-next[data-step="4"]').attr('disabled', 'disabled');
+        if (isPropertyOwnershipChecked) {
+            $('#property-ownership-error').text('');
+            return;
         }
     });
 
@@ -164,9 +240,8 @@ $(document).ready(function() {
         const isFirstTimeChecked = $('input[name="first_time"]:checked').length > 0;
         
         if (isFirstTimeChecked) {
-            $('.btn-next[data-step="5"]').removeAttr('disabled');
-        } else {
-            $('.btn-next[data-step="5"]').attr('disabled', 'disabled');
+            $('#first-time-error').text('');
+            return;
         }
     });
 
@@ -185,6 +260,9 @@ $(document).ready(function() {
         
         const formData = $(this).serialize();
         
+        $('#loading-indicator').show();
+        $('.btn-next').prop('disabled', true);
+
         $.ajax({
             url: 'submit.php',
             type: 'POST',
@@ -192,6 +270,9 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 console.log(response);
+
+                $('#loading-indicator').hide();
+                $('.btn-next').prop('disabled', false);
                 
                 $(`#${response.data.result}`).addClass('active');
                 $('.action-btn').attr("href", response.data.listing);
@@ -199,6 +280,10 @@ $(document).ready(function() {
             },
             error: function(xhr, status, error) {
                 console.error('AJAX Error:', status, error);
+
+                $('#loading-indicator').hide();
+                $('.btn-next').prop('disabled', false);
+                
                 alert('Something went wrong. Please try again.');
             }
         });
@@ -209,6 +294,13 @@ function formValidation() {
     let invalidFields = false;
     $('.error-message').text('');
     
+    // Validate first time
+    const isFirstTimeChecked = $('input[name="first_time"]:checked').length > 0;
+    if (!isFirstTimeChecked) {
+        $('#first-time-error').text('Please select an option.');
+        invalidFields = true;
+    }
+
     // Validate name
     const name = $('input[name="name"]').val();
     if (!name) {

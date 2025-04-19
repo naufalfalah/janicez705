@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Renovation Budget Calculator</title>
+    <title>EC Eligibility Assessment    </title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
 </head>
@@ -15,7 +15,7 @@
                 <div class="logo-icon">
                     <i class="fas fa-home"></i>
                 </div>
-                <div class="logo-text">Renovation Budget</div>
+                <div class="logo-text">EC Eligibility Assessment</div>
             </div>
 
             <div class="progress-container">
@@ -60,15 +60,17 @@
                     <div class="step-number">6</div>
                 </li>
             </ul>
-            <div class="sidebar-footer">
+            <!-- <div class="sidebar-footer">
                 Helping you plan your perfect renovation
-            </div>
+            </div> -->
         </div>
 
         <!-- Main Content -->
         <div class="main-content">
             <div class="container">
                 <form action="submit.php" method="post" id="submit-form">
+                    <input type="hidden" name="source_url" value="https://launchgovtest.homes/">
+
                     <!-- Step 1: Property Details -->
                     <section class="form-section active" id="step-1">
                         <div class="section-header">
@@ -123,7 +125,7 @@
     
                         <div class="buttons">
                             <div></div> <!-- Empty div for spacing -->
-                            <button type="button" class="btn btn-next" onclick="nextStep()" data-step="1">
+                            <button type="button" class="btn btn-next" data-step="1">
                                 Continue <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
@@ -176,6 +178,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="yourself-error"></p>
                             </div>
                         </div>
     
@@ -205,6 +208,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="citizenship-error"></p>
                             </div>
                         </div>
     
@@ -212,7 +216,7 @@
                             <button type="button" class="btn btn-prev" onclick="prevStep()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
-                            <button type="button" class="btn btn-next" onclick="nextStep()" data-step="2" disabled>
+                            <button type="button" class="btn btn-next" data-step="2">
                                 Continue <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
@@ -247,6 +251,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="age-error"></p>
                             </div>
                         </div>
     
@@ -270,6 +275,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="monthly-household-error"></p>
                             </div>
                         </div>
     
@@ -277,7 +283,7 @@
                             <button type="button" class="btn btn-prev" onclick="prevStep()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
-                            <button type="button" class="btn btn-next" onclick="nextStep()" data-step="3" disabled>
+                            <button type="button" class="btn btn-next" data-step="3">
                                 Continue <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
@@ -312,6 +318,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="ownership-status-error"></p>
                             </div>
                         </div>
     
@@ -336,6 +343,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="property-ownership-error"></p>
                             </div>
                         </div>
     
@@ -343,7 +351,7 @@
                             <button type="button" class="btn btn-prev" onclick="prevStep()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
-                            <button type="button" class="btn btn-next" onclick="nextStep()" data-step="4" disabled>
+                            <button type="button" class="btn btn-next" data-step="4">
                                 Continue <i class="fas fa-arrow-right"></i>
                             </button>
                         </div>
@@ -371,12 +379,13 @@
                                         </label>
                                     </div>
                                 </div>
+                                <p class="error-message" id="first-time-error"></p>
                             </div>
                         </div>
     
                         <div class="section-header">
                             <h1 class="section-title">Contact Information</h1>
-                            <p class="section-subtitle">Enter your details to receive a detailed renovation report</p>
+                            <!-- <p class="section-subtitle">Enter your details to receive a detailed renovation report</p> -->
                         </div>
                         <div class="form-group">
                             <label class="form-label">Full Name</label>
@@ -397,7 +406,7 @@
                                     <option value="+1">+1 (US)</option>
                                     <option value="+44">+44 (UK)</option>
                                 </select>
-                                <input type="tel" class="form-input" name="phone_number" placeholder="Enter your phone number">
+                                <input type="tel" class="form-input" name="phone_number" placeholder="Enter your phone number" maxlength="8">
                             </div>
                             <p class="error-message" id="phone-error"></p>
                         </div>
@@ -422,17 +431,21 @@
                             <button type="button" class="btn btn-prev" onclick="prevStep()">
                                 <i class="fas fa-arrow-left"></i> Back
                             </button>
-                            <button type="submit" class="btn btn-next" data-step="5" disabled>
+                            <button type="submit" class="btn btn-submit" data-step="5">
                                 Continue <i class="fas fa-arrow-right"></i>
                             </button>
+                        </div>
+
+                        <div id="loading-indicator" style="display: none;">
+                            <p>Loading...</p>
                         </div>
                     </section>
     
                     <!-- Step 6: Results -->
                     <section class="form-section" id="step-6">
                         <div class="section-header">
-                            <h1 class="section-title">Your Renovation Results</h1>
-                            <p class="section-subtitle">Here's your estimated renovation budget</p>
+                            <h1 class="section-title">Your Results</h1>
+                            <p class="section-subtitle">We have assessed your EC eligibility</p>
                         </div>
     
                         <div class="result-card">
@@ -443,20 +456,32 @@
                                 <p>A confirmation email with the PDF report has been sent to your@email.com</p>
                             </div> -->
                             <!-- <p>Our team will reach out with a shortlist of Interior Designers shortly.</p> -->
-    
+                            
                             <div id="disqualification" class="result">
+                                <div class="alert alert-danger text-center">
+                                    <p>Disqualification, EC Purchase Eligibility Not Met</p>
+                                </div>
                                 <p>We have assessed your EC eligibility, and unfortunately, it seems you might not currently qualify for an EC purchase. However, based on your assessment, you might be eligible to seek an appeal. Our team will contact you to discuss the possibility of an appeal and guide you through the process. Meanwhile, here are the top 5 affordable condos for you to consider as alternatives. 😊</p>
                             </div>
-
+                            
                             <div id="appeal" class="result">
+                                <div class="alert alert-primary text-center">
+                                    <p>Congratulations!</p>
+                                </div>
                                 <p>We have assessed your EC eligibility, and unfortunately, it seems you might not currently qualify for an EC purchase. However, based on your assessment, you might be eligible to seek an appeal. Our team will contact you to discuss the possibility of an appeal and guide you through the process. Meanwhile, here are the top 5 affordable condos for you to consider as alternatives. 😊</p>
                             </div>
-
+                            
                             <div id="mop" class="result">
+                                <div class="alert alert-primary text-center">
+                                    <p>Congratulations!</p>
+                                </div>
                                 <p>We've noted that your HDB is still within the Minimum Occupation Period (MOP), which may affect your eligibility for an EC purchase. We will be conducting a second assessment to explore potential grounds for an appeal on your behalf. Meanwhile, consider these top 5 affordable condos as alternatives. Please note that Additional Buyer's Stamp Duty (ABSD) may apply.</p>
                             </div>
-
+                            
                             <div id="congratulation" class="result">
+                                <div class="alert alert-primary text-center">
+                                    <p>Congratulations!</p>
+                                </div>
                                 <p>We have assessed your EC eligibility. Good news! You're potentially eligible for an EC purchase. If you're a first-timer, you might qualify for up to $30,000 in cash grants to offset your selling price. Our team will reach out to you soon to confirm whether you can receive the $30,000 grant. Meanwhile, download a PDF copy of all available ECs in the market to explore your options! 😊</p>
                             </div>
     
