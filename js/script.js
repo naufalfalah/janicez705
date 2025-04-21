@@ -161,9 +161,7 @@ $(document).ready(function() {
                 $('#property-ownership-error').text('Please select an option.');
                 isValid = false;
             }
-        }
 
-        if (step === 5) {
             const isFirstTimeChecked = $('input[name="first_time"]:checked').length > 0;
             if (!isFirstTimeChecked) {
                 $('#first-time-error').text('Please select an option.');
@@ -235,7 +233,6 @@ $(document).ready(function() {
         }
     });
 
-    // Step 5
     $('input[name="first_time"]').change(function() {
         const isFirstTimeChecked = $('input[name="first_time"]:checked').length > 0;
         
@@ -245,6 +242,7 @@ $(document).ready(function() {
         }
     });
 
+    // Step 5
     $('input[name="phone_number"]').on('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
@@ -293,13 +291,6 @@ $(document).ready(function() {
 function formValidation() {
     let invalidFields = false;
     $('.error-message').text('');
-    
-    // Validate first time
-    const isFirstTimeChecked = $('input[name="first_time"]:checked').length > 0;
-    if (!isFirstTimeChecked) {
-        $('#first-time-error').text('Please select an option.');
-        invalidFields = true;
-    }
 
     // Validate name
     const name = $('input[name="name"]').val();
